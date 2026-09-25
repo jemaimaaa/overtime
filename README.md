@@ -40,7 +40,7 @@ Duration is calculated in whole minutes. Worked hours are rounded to two decimal
 3. Absent: hours − 8 (including negatives).
 4. Otherwise: max(hours − 8, 0).
 
-The Summary breakdown assigns each entry to one category, so its rows add to total overtime. Holiday labels the first branch when present; otherwise Sunday. In the second branch, Saturday takes precedence over Sick/Dayoff. The month is based on the shift's starting work date, including overnight shifts. Worked-time totals use original minutes; overtime totals use the calculated decimal hours and are displayed rounded to the nearest minute. No additional pay rules or breaks are assumed.
+The Summary breakdown assigns each entry to one category, so its rows add to total overtime. Holiday labels the first branch when present; otherwise Sunday. In the second branch, Saturday takes precedence over Sick/Dayoff. Monthly and custom-range summaries use the shift’s starting work date, including overnight shifts. Custom ranges include both the From and To dates. History shows 25 compact entries per page, newest first. Worked-time totals use original minutes; overtime totals use the calculated decimal hours and are displayed rounded to the nearest minute. No additional pay rules or breaks are assumed.
 
 ## Deploy on Render Static Site
 

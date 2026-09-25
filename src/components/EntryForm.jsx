@@ -16,7 +16,7 @@ export default function EntryForm({ entry, onSave, onCancel, onDelete, busy }) {
     if(await onSave(form,entry?.id)) {if (!entry) setForm(fresh());}
   }
   return <form onSubmit={submit} noValidate className="entry-form">
-    <div className="form-heading"><span className="eyebrow">{entry ? 'MAKE A CORRECTION' : 'ONE SHIFT AT A TIME'}</span><h1>{entry ? 'Edit your entry' : 'Let’s log your day.'}</h1><p>{entry ? 'Update the details below.' : 'A little record of your hard work.'}</p></div>
+    <div className="form-heading"><h1>{entry ? 'Edit entry' : 'Add entry'}</h1></div>
     <fieldset disabled={busy}>
       <div className="date-heading"><CalendarDays size={19}/><span>{dateLabel}</span>{form.work_date === localToday() && <span className="today-tag">Today</span>}</div>
       <label htmlFor="work-date">Work date</label><input id="work-date" name="work_date" type="date" value={form.work_date} onChange={change} onInput={change} required/>
@@ -30,8 +30,5 @@ export default function EntryForm({ entry, onSave, onCancel, onDelete, busy }) {
       <button className="primary save" disabled={busy} type="submit"><Check size={20}/>{busy?'Saving…':entry?'Save changes':'Save entry'}</button>
       {entry && <div className="edit-actions"><button type="button" className="text-button" onClick={onCancel}>Cancel</button><button type="button" className="text-button danger" onClick={()=>onDelete(entry)}>Delete entry</button></div>}
     </fieldset>
-    {!entry && <p className="under-form">Your hours, simply kept.</p>}
   </form>;
 }
-
-
