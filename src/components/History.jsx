@@ -1,6 +1,6 @@
 import { useRef } from 'react';
 import { ChevronLeft, ChevronRight, Clock3 } from 'lucide-react';
-import { calculate, formatDate, formatMinutes, formatTime } from '../lib/calculations';
+import { calculateAll, formatDate, formatMinutes, formatTime } from '../lib/calculations';
 
 const PAGE_SIZE = 25;
 
@@ -10,6 +10,7 @@ export default function History({ entries, onEdit, page, onPageChange }) {
   const currentPage = Math.min(page, pages);
   const offset = (currentPage - 1) * PAGE_SIZE;
   const visible = entries.slice(offset, offset + PAGE_SIZE);
+  const calculated = calculateAll(entries);
 
   function changePage(next) {
     onPageChange(next);
@@ -22,14 +23,13 @@ export default function History({ entries, onEdit, page, onPageChange }) {
     {!entries.length ? <div className="empty"><Clock3 size={32}/><h2>No entries yet.</h2><p>Your saved shifts will appear here.</p></div> : <>
       <p className="history-count" role="status">{offset + 1}–{Math.min(offset + PAGE_SIZE, entries.length)} of {entries.length} entries</p>
       <div className="history-list">{visible.map(entry => {
-        let totals;
-        try { totals = calculate(entry); } catch { /* Allow invalid legacy entries to be corrected. */ }
+        const totals = calculated.get(entry);
         let date;
         try { date = formatDate(entry.work_date, { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' }); }
         catch { date = 'Date needs updating'; }
         return <button className="history-card" key={entry.id} onClick={() => onEdit(entry)}>
           <div className="history-top"><strong>{date}</strong><span className="history-kind">{entry.day_type}<ChevronRight size={15}/></span></div>
-          <p className="history-times">{formatTime(entry.time_in)} → {formatTime(entry.time_out)}{totals?.overnight && <small> (+1 day)</small>}</p>
+          <p className="history-times">{entry.day_type === 'Dayoff' ? (totals ? totals.leaveUsed ? '1 day annual leave' : 'Annual leave exhausted · −8h overtime' : 'Check work date') : <>{formatTime(entry.time_in)} → {formatTime(entry.time_out)}{totals?.overnight && <small> (+1 day)</small>}</>}</p>
           <div className="history-totals"><span>{totals ? formatMinutes(totals.workedMinutes) : '—'} <small>worked</small></span><span>{totals ? formatMinutes(totals.overtime * 60) : '—'} <small>OT</small></span></div>
           {!totals && <p>Please check this entry’s date and times.</p>}
         </button>;

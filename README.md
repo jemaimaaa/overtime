@@ -35,12 +35,13 @@ The work date is a calendar string (`YYYY-MM-DD`); times are wall-clock strings.
 
 Duration is calculated in whole minutes. Worked hours are rounded to two decimals **before** applying these rules, in order:
 
-1. Sunday or Holiday: hours × 2.
-2. Saturday or Sick or Dayoff: hours.
-3. Absent: hours − 8 (including negatives).
-4. Otherwise: max(hours − 8, 0).
+1. Dayoff: use 1 of 25 annual leave days per calendar year; overtime is 0 while covered, then −8 hours per further entry. Dayoff has zero worked hours and this rule overrides weekend rules.
+2. Otherwise Sunday or Holiday: hours × 2.
+3. Otherwise Saturday or Sick: hours.
+4. Otherwise Absent: hours − 8 (including negatives).
+5. Otherwise: max(hours − 8, 0).
 
-The Summary breakdown assigns each entry to one category, so its rows add to total overtime. Holiday labels the first branch when present; otherwise Sunday. In the second branch, Saturday takes precedence over Sick/Dayoff. Monthly and custom-range summaries use the shift’s starting work date, including overnight shifts. Custom ranges include both the From and To dates. History shows 25 compact entries per page, newest first. Worked-time totals use original minutes; overtime totals use the calculated decimal hours and are displayed rounded to the nearest minute. No additional pay rules or breaks are assumed.
+The Summary breakdown assigns each entry to one category, so its rows add to total overtime. Dayoff is always categorised as Dayoff. For other entries, Holiday takes the label when present; otherwise Sunday, followed by Saturday ahead of Sick. Monthly and custom-range summaries use the shift’s starting work date, including overnight shifts. Custom ranges include both the From and To dates. History shows 25 compact entries per page, newest first. Worked-time totals use original minutes; overtime totals use the calculated decimal hours and are displayed rounded to the nearest minute. No additional pay rules or breaks are assumed.
 
 ## Deploy on Render Static Site
 
@@ -69,3 +70,11 @@ Open the HTTPS deployment. On iPhone Safari, use Share → Add to Home Screen. O
 New entries start at 12:00–20:00. Saving resets the form to today with those same defaults; editing preserves the saved times. Use **Add another date** for up to 31 distinct dates sharing the entered hours and day type. The dates are saved together in one database insert, with overtime calculated individually for each date. For different hours, save separate entries. Duplicate dates within a batch are rejected; existing entries are never overwritten.
 
 Expand **How is this calculated?** below the totals to see the duration, decimal-hours rounding, applicable rule and overtime equation for each date. Open an existing History entry to see its computation too.
+
+## Annual leave
+
+The allowance resets to 25 days every 1 January, with no carryover. All Dayoff entries use the allowance in chronological order across the complete saved history, before month, custom-range or pagination filters. Each entry counts as one day, including weekend entries and separate entries on the same date. Same-date entries are ordered by creation time then ID. Enter one Dayoff entry per leave day.
+
+The first 25 Dayoff entries have zero overtime; every further entry deducts 8 hours, including when the total becomes negative. Dayoff contributes no worked hours; saved times on older Dayoff rows are ignored, and newly saved Dayoff rows use 00:00 for both times. Other day types retain their existing rules. No database migration or stored calculated balance is needed. Existing entries automatically use the new rule. Edits, deletions and backdated entries recalculate subsequent allocations.
+
+Summary shows annual leave used, remaining, and excess Dayoff deductions for each year represented in the selected period. Balances count entries from January through the selected period’s end, including recorded future leave. Range overtime still includes only entries inside the range, while using earlier leave to determine whether the allowance is exhausted. Record all leave taken in the year for an accurate balance.

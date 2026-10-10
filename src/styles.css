@@ -39,3 +39,4 @@ main { padding-bottom: max(28px, env(safe-area-inset-bottom)); }
 .extra-date > div { min-width: 0; flex: 1; }
 .extra-date .text-button { padding-inline: 8px; }
 .multiple-dates > .text-button { padding-left: 0; }
+.leave-balance { display: grid; gap: 8px; padding: 16px 0; border-bottom: 1px solid #daddcf; font-size: 14px; color: #505c45; }

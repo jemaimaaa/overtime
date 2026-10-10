@@ -10,7 +10,7 @@ export async function loadEntries(userId) {
   }
 }
 export async function saveEntry(userId, entry, id) {
-  const payload = {user_id:userId,work_date:entry.work_date,time_in:entry.time_in,time_out:entry.time_out,day_type:entry.day_type,notes:entry.notes || ''};
+  const payload = {user_id:userId,work_date:entry.work_date,time_in:entry.day_type === 'Dayoff' ? '00:00' : entry.time_in,time_out:entry.day_type === 'Dayoff' ? '00:00' : entry.time_out,day_type:entry.day_type,notes:entry.notes || ''};
   const query = id ? supabase.from('timesheets').update(payload).eq('id',id).eq('user_id',userId) : supabase.from('timesheets').insert(payload);
   const {data,error} = await query.select(columns).single(); if(error) throw error; return data;
 }
@@ -19,8 +19,8 @@ export async function deleteEntry(userId,id) {
 }
 export async function saveMultipleEntries(userId, entry, dates) {
   const payload = batchEntries(entry, dates).map(row => ({
-    user_id: userId, work_date: row.work_date, time_in: row.time_in,
-    time_out: row.time_out, day_type: row.day_type, notes: row.notes || '',
+    user_id: userId, work_date: row.work_date, time_in: row.day_type === 'Dayoff' ? '00:00' : row.time_in,
+    time_out: row.day_type === 'Dayoff' ? '00:00' : row.time_out, day_type: row.day_type, notes: row.notes || '',
   }));
   // One insert statement: the entire batch succeeds or fails together.
   const { data, error } = await supabase.from('timesheets').insert(payload).select(columns);
