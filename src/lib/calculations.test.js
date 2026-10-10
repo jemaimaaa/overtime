@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {calculate, calendarDate, formatMinutes, localToday, summarise} from './calculations.js';
+import {calculate, batchEntries, calendarDate, formatMinutes, localToday, summarise} from './calculations.js';
 const entry=(date,start,end,type='Normal')=>({work_date:date,time_in:start,time_out:end,day_type:type});
 const cases=[
  ['Monday eight hours','2026-09-21','08:00','16:00','Normal',8,0],
@@ -27,3 +27,23 @@ test('Invalid inputs are rejected',()=>{for(const date of ['2026-02-30','','bad'
 test('Negative and rounded duration display',()=>{assert.equal(formatMinutes(-480),'−8h 00m');assert.equal(formatMinutes(630),'10h 30m');assert.equal(formatMinutes(NaN),'—');});
 test('Summary categories never double count and keep negative values',()=>{const s=summarise([entry('2026-09-27','08:00','14:00','Holiday'),entry('2026-09-21','00:00','00:00','Absent')]);assert.equal(s.overtime,4);assert.equal(s.categories.Holiday,12);assert.equal(s.categories.Sunday,0);assert.equal(s.categories.Absent,-8);assert.equal(Object.values(s.categories).reduce((a,b)=>a+b,0),s.overtime);});
 test('Today uses local date parts',()=>{assert.equal(localToday(new Date(2026,8,25,0,30)),'2026-09-25');});
+
+test('Batch dates preserve input hours and calculate weekend rules individually', () => {
+  const source = entry('2026-10-09', '12:00', '20:00');
+  const rows = batchEntries(source, ['2026-10-09', '2026-10-10', '2026-10-11']);
+  assert.deepEqual(rows.map(row => calculate(row).overtime), [0, 8, 16]);
+  assert.equal(source.work_date, '2026-10-09');
+  assert.ok(rows.every(row => row.time_in === '12:00' && row.time_out === '20:00'));
+});
+test('Batch rejects blank, duplicate and invalid dates before writing', () => {
+  const source = entry('2026-10-09', '12:00', '20:00');
+  for (const dates of [[], [''], ['2026-02-30'], ['2026-10-09', '2026-10-09']]) {
+    assert.throws(() => batchEntries(source, dates));
+  }
+});
+test('Computation formula follows the same priority as overtime', () => {
+  assert.equal(calculate(entry('2026-09-27','22:00','08:30','Absent')).formula, '10.50 × 2');
+  assert.equal(calculate(entry('2026-09-21','00:00','00:00','Absent')).formula, '0.00 − 8');
+  assert.equal(calculate(entry('2026-09-21','12:00','20:00')).formula, '8.00 − 8, minimum 0');
+  assert.equal(calculate(entry('2026-09-26','12:00','20:00')).formula, '8.00 × 1');
+});

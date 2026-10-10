@@ -20,15 +20,23 @@ export function calculate(entry) {
   const start = minutes(entry.time_in), end = minutes(entry.time_out);
   const workedMinutes = (end-start+1440)%1440;
   const workedHours = Math.round(workedMinutes/60*100)/100;
-  let overtime, category;
+  let overtime, category, formula;
   if (weekday === 0 || entry.day_type === 'Holiday') {
-    overtime = workedHours*2; category = entry.day_type === 'Holiday' ? 'Holiday' : 'Sunday';
+    overtime = workedHours*2; category = entry.day_type === 'Holiday' ? 'Holiday' : 'Sunday'; formula = `${workedHours.toFixed(2)} × 2`;
   } else if (weekday === 6 || ['Sick','Dayoff'].includes(entry.day_type)) {
-    overtime = workedHours; category = weekday === 6 ? 'Saturday' : entry.day_type;
+    overtime = workedHours; category = weekday === 6 ? 'Saturday' : entry.day_type; formula = `${workedHours.toFixed(2)} × 1`;
   } else if (entry.day_type === 'Absent') {
-    overtime = workedHours-8; category = 'Absent';
-  } else { overtime = Math.max(workedHours-8,0); category = 'Regular weekday OT'; }
-  return {workedMinutes, workedHours, overtime: Math.round(overtime*100)/100, category, overnight: end < start};
+    overtime = workedHours-8; category = 'Absent'; formula = `${workedHours.toFixed(2)} − 8`;
+  } else { overtime = Math.max(workedHours-8,0); category = 'Regular weekday OT'; formula = `${workedHours.toFixed(2)} − 8, minimum 0`; }
+  return {workedMinutes, workedHours, overtime: Math.round(overtime*100)/100, category, formula, overnight: end < start};
+}
+export function batchEntries(entry, dates) {
+  if (!dates.length || dates.length > 31 || new Set(dates).size !== dates.length) throw new Error('Choose up to 31 different dates');
+  return dates.map(work_date => {
+    const row = { ...entry, work_date };
+    calculate(row);
+    return row;
+  });
 }
 export function formatMinutes(value) {
   if (!Number.isFinite(value)) return '—';

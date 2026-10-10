@@ -1,4 +1,5 @@
 import { supabase } from './supabase';
+import { batchEntries } from './calculations';
 const columns = 'id,user_id,work_date,time_in,time_out,day_type,notes,created_at';
 export async function loadEntries(userId) {
   const rows = []; let from = 0;
@@ -15,4 +16,14 @@ export async function saveEntry(userId, entry, id) {
 }
 export async function deleteEntry(userId,id) {
   const {error} = await supabase.from('timesheets').delete().eq('id',id).eq('user_id',userId).select('id').single(); if(error) throw error;
+}
+export async function saveMultipleEntries(userId, entry, dates) {
+  const payload = batchEntries(entry, dates).map(row => ({
+    user_id: userId, work_date: row.work_date, time_in: row.time_in,
+    time_out: row.time_out, day_type: row.day_type, notes: row.notes || '',
+  }));
+  // One insert statement: the entire batch succeeds or fails together.
+  const { data, error } = await supabase.from('timesheets').insert(payload).select(columns);
+  if (error) throw error;
+  return data;
 }

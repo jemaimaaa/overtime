@@ -63,3 +63,9 @@ Open the HTTPS deployment. On iPhone Safari, use Share → Add to Home Screen. O
 ## Verification
 
 `npm test` covers the ten requested examples plus branch priorities, minute rounding, zero duration, PostgreSQL times, invalid input, negative formatting, timezone independence and summary categorisation. Before launch, use the real Supabase account to verify authentication, owner-only policies, create/edit/delete, session restoration, error handling and phone installation. These integration checks require your project configuration.
+
+## Default hours, multiple dates and computation
+
+New entries start at 12:00–20:00. Saving resets the form to today with those same defaults; editing preserves the saved times. Use **Add another date** for up to 31 distinct dates sharing the entered hours and day type. The dates are saved together in one database insert, with overtime calculated individually for each date. For different hours, save separate entries. Duplicate dates within a batch are rejected; existing entries are never overwritten.
+
+Expand **How is this calculated?** below the totals to see the duration, decimal-hours rounding, applicable rule and overtime equation for each date. Open an existing History entry to see its computation too.

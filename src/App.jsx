@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { AlarmClock, Plus, History as HistoryIcon, ChartNoAxesColumnIncreasing, LogOut, WifiOff } from 'lucide-react';
 import { supabase } from './lib/supabase';
-import { loadEntries, saveEntry, deleteEntry } from './lib/entries';
+import { loadEntries, saveEntry, saveMultipleEntries, deleteEntry } from './lib/entries';
 import EntryForm from './components/EntryForm';
 import History from './components/History';
 import Summary from './components/Summary';
@@ -17,7 +17,20 @@ export default function App(){
  const userId=session?.user.id;
  useEffect(()=>{setEntries([]);setHistoryPage(1);setEditing(null);setPendingDelete(null);setNotice(null);setTab('Add');if(!userId)return;let active=true;setLoading(true);setLoadError(false);loadEntries(userId).then(rows=>{if(active)setEntries(rows);}).catch(()=>{if(active)setLoadError(true);}).finally(()=>{if(active)setLoading(false);});return()=>{active=false;};},[userId]);
  async function reload(){setLoading(true);setLoadError(false);try{setEntries(await loadEntries(userId));}catch{setLoadError(true);}finally{setLoading(false);}}
- async function save(form,id){setBusy(true);setNotice(null);try{const row=await saveEntry(userId,form,id);setEntries(old=>[...old.filter(e=>e.id!==row.id),row].sort((a,b)=>b.work_date.localeCompare(a.work_date)||b.created_at.localeCompare(a.created_at)));setNotice({text:id?'Changes saved.':'Entry saved. You’re all done!',type:'success'});if(id){setEditing(null);setTab('History');}return true;}catch{setNotice({text:online?'Your entry couldn’t be saved. Your details are still here — please try again.':'You’re offline. Keep this page open and save again when you reconnect.',type:'error'});return false;}finally{setBusy(false);}}
+ async function save(form,id,dates=[form.work_date]) {
+   setBusy(true);setNotice(null);
+   try {
+     const rows = !id && dates.length > 1 ? await saveMultipleEntries(userId,form,dates) : [await saveEntry(userId,form,id)];
+     const savedIds = new Set(rows.map(row=>row.id));
+     setEntries(old=>[...old.filter(e=>!savedIds.has(e.id)),...rows].sort((a,b)=>b.work_date.localeCompare(a.work_date)||b.created_at.localeCompare(a.created_at)));
+     setNotice({text:id?'Changes saved.':rows.length>1?`${rows.length} entries saved.`:'Entry saved.',type:'success'});
+     if(id){setEditing(null);setTab('History');}
+     return true;
+   } catch {
+     setNotice({text:online?'Your entries couldn’t be saved. Your details are still here — please try again.':'You’re offline. Keep this page open and save again when you reconnect.',type:'error'});
+     return false;
+   } finally {setBusy(false);}
+ }
  async function remove(){setBusy(true);try{await deleteEntry(userId,pendingDelete.id);setEntries(old=>old.filter(e=>e.id!==pendingDelete.id));setPendingDelete(null);setEditing(null);setNotice({text:'Entry deleted.',type:'success'});}catch{setPendingDelete(null);setNotice({text:'We couldn’t delete this entry. Please check your connection and try again.',type:'error'});}finally{setBusy(false);}}
  async function signOut(){setBusy(true);try{const {error}=await supabase.auth.signOut();if(error)throw error;}catch{setNotice({text:'We couldn’t sign you out. Please try again.',type:'error'});}finally{setBusy(false);}}
  return <div className="app-shell"><header className="header"><div className="brand"><span className="brand-icon"><AlarmClock size={25}/></span><div><span>Sara Timesheet</span></div></div>{session&&<button className="signout" aria-label="Sign out" title="Sign out" onClick={signOut} disabled={busy}><LogOut size={19}/></button>}</header>
