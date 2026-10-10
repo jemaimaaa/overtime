@@ -78,3 +78,9 @@ The allowance resets to 25 days every 1 January, with no carryover. All Dayoff e
 The first 25 Dayoff entries have zero overtime; every further entry deducts 8 hours, including when the total becomes negative. Dayoff contributes no worked hours; saved times on older Dayoff rows are ignored, and newly saved Dayoff rows use 00:00 for both times. Other day types retain their existing rules. No database migration or stored calculated balance is needed. Existing entries automatically use the new rule. Edits, deletions and backdated entries recalculate subsequent allocations.
 
 Summary shows annual leave used, remaining, and excess Dayoff deductions for each year represented in the selected period. Balances count entries from January through the selected period’s end, including recorded future leave. Range overtime still includes only entries inside the range, while using earlier leave to determine whether the allowance is exhausted. Record all leave taken in the year for an accurate balance.
+
+## Print and PDF export
+
+Open Summary and choose Month, Custom range, or All entries, then tap **Print / Save as PDF**. In the browser print window choose a printer or Save as PDF (on iPhone, use the print preview's sharing options to save the PDF). The report contains every selected entry, not just the 25 entries visible on a History page, in chronological order. Hours, overtime breakdown and annual leave balances appear at the end. Earlier leave outside a selected period is still included when calculating the allowance.
+
+The print layout uses A4 portrait, narrow 12mm margins, compact 9pt table text, repeated column headings and a two-column summary. Rows and the summary stay together where they fit; extra pages are added only as needed. Notes are included and can increase the page count. For a cleaner PDF, turn off the browser's own headers and footers. No timesheet data is sent to a separate export service.
